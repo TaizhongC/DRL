@@ -19,7 +19,8 @@ bool computeMap = false;
 bool exportToCSV = false;
 bool display = true;
 
-double background = 0.35;
+double background = 1.0;
+double voxelSize = 0.35;
 int numVoxels = -1;
 ////// --- zSpace Objects --------------------------------------------------
 /*!<model*/
@@ -96,6 +97,8 @@ void setup()
 	
 	S.addSlider(&background, "background");
 	S.sliders[0].attachToVariable(&background, 0, 1);
+	S.addSlider(&voxelSize, "size");
+	S.sliders[1].attachToVariable(&voxelSize, 0, 1);
 
 	////////////////////////////////////////////////////////////////////////// Buttons
 
@@ -119,18 +122,22 @@ void update(int value)
 		int numX, numY, numZ;
 
 		unitX = unitY = unitZ = 1;
-		numX = numY = numZ = 10;
+		numX = numY = numZ = 20;
 
 		createPointCloud(fnCloud, unitX, unitY, unitZ, numX, numY, numZ, minBB, maxBB);
 		cout << maxBB << "," << minBB << endl;
 
 		numVoxels = fnCloud.numVertices();
+		zDomainColor colDomain(zColor(0, 0, 0, 0), zColor(1, 0, 0, 1));
+
 		float maxDist = (maxBB - minBB).length();
+		zPoint target = minBB;
 		for (zItPointCloudVertex v(oCloud); !v.end(); v++)
 		{
-			zVector vec = v.getPosition() - zPoint(0, 0, 0);
-			float val = vec.length() / maxDist;
-			v.setColor(zColor(val, 0, 0, 1));
+			zVector vec = v.getPosition() - target;
+			float dist = vec.length();
+			zColor col = core.blendColor(dist, zDomainFloat(0,maxDist), colDomain, zRGB);
+			v.setColor(col);
 		}
 
 		compute = !compute;	
@@ -169,7 +176,7 @@ void draw()
 
 		for (zItPointCloudVertex v(oCloud); !v.end(); v++)
 		{
-			model.displayUtils.drawPoint(v.getPosition(), v.getColor(), 10);
+			model.displayUtils.drawPoint(v.getPosition(), v.getColor(), 10* voxelSize);
 		}
 		
 	}
@@ -182,7 +189,7 @@ void draw()
 	setup2d();
 	glColor3f(0, 0, 0);
 
-	drawString("AADRL WS2 2022:", vec(50, 200, 0));
+	drawString("AADRL WS2 2022", vec(50, 200, 0));
 
 	drawString("Total num of voxels #:" + to_string(numVoxels), vec(50, 250, 0));
 	drawString("p - compute voxels", vec(50, 275, 0));
