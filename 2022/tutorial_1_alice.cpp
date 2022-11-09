@@ -18,6 +18,7 @@ bool compute = false;
 bool computeMap = false;
 bool exportToCSV = false;
 bool display = true;
+bool ptMove = false;
 
 double background = 1.0;
 double voxelSize = 0.35;
@@ -35,6 +36,9 @@ zObjGraph oGraph;
 
 zObjPointCloud oCloud;
 zPoint minBB, maxBB;
+
+zPoint target(10, 10, 0);
+zVector force(0, 0, 0.5);
 
 
 ////// --- GUI OBJECTS ----------------------------------------------------
@@ -82,7 +86,6 @@ void setup()
 
 
 
-
 		
 	//////////////////////////////////////////////////////////  DISPLAY SETUP
 	// append to model for displaying the object
@@ -108,8 +111,10 @@ void setup()
 	B.buttons[0].attachToVariable(&compute);
 	B.addButton(&display, "display");
 	B.buttons[1].attachToVariable(&display);
+	B.addButton(&ptMove, "ptMove");
+	B.buttons[2].attachToVariable(&ptMove);
 	B.addButton(&exportToCSV, "exportToCSV");
-	B.buttons[2].attachToVariable(&exportToCSV);
+	B.buttons[3].attachToVariable(&exportToCSV);
 
 }
 
@@ -125,13 +130,12 @@ void update(int value)
 		numX = numY = numZ = 20;
 
 		createPointCloud(fnCloud, unitX, unitY, unitZ, numX, numY, numZ, minBB, maxBB);
-		cout << maxBB << "," << minBB << endl;
+		//cout << maxBB << "," << minBB << endl;
 
 		numVoxels = fnCloud.numVertices();
 		zDomainColor colDomain(zColor(0, 0, 0, 0), zColor(1, 0, 0, 1));
 
 		float maxDist = (maxBB - minBB).length();
-		zPoint target = minBB;
 		for (zItPointCloudVertex v(oCloud); !v.end(); v++)
 		{
 			zVector vec = v.getPosition() - target;
@@ -140,7 +144,16 @@ void update(int value)
 			v.setColor(col);
 		}
 
-		compute = !compute;	
+		//compute = !compute;	
+	}
+
+	if (ptMove)
+	{
+		if (target.z + force.z > 20 || target.z + force.z < 0)
+			force.z = -force.z;
+
+		//cout << force << endl;
+		target += force;
 	}
 
 	if (exportToCSV)
@@ -172,11 +185,19 @@ void draw()
 	{
 		// zspace model draw
 		model.draw();
-
+		
+		model.displayUtils.drawPoint(target, zColor(0, 0, 1, 1), 10);
 
 		for (zItPointCloudVertex v(oCloud); !v.end(); v++)
 		{
+			//draw pt
 			model.displayUtils.drawPoint(v.getPosition(), v.getColor(), 10* voxelSize);
+
+			////draw cube
+			//zPoint min(v.getPosition().x - voxelSize, v.getPosition().y - voxelSize, v.getPosition().z - voxelSize);
+			//zPoint max(v.getPosition().x + voxelSize, v.getPosition().y + voxelSize, v.getPosition().z + voxelSize);
+			//model.displayUtils.drawCube(min,max, v.getColor());
+
 		}
 		
 	}
@@ -193,7 +214,8 @@ void draw()
 
 	drawString("Total num of voxels #:" + to_string(numVoxels), vec(50, 250, 0));
 	drawString("p - compute voxels", vec(50, 275, 0));
-	drawString("o - export to csv", vec(50, 300, 0));
+	drawString("m - move target", vec(50, 300, 0));
+	drawString("o - export to csv", vec(50, 325, 0));
 
 	restore3d();
 }
@@ -205,6 +227,8 @@ void keyPress(unsigned char k, int xm, int ym)
 	if (k == 'w') compute = true;;
 
 	if (k == 'o') exportToCSV = true;
+
+	if (k == 'm') ptMove = true;
 
 }
 
