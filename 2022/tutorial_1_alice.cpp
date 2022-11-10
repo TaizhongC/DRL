@@ -28,21 +28,22 @@ int numVoxels = -1;
 zModel model;
 
 /*!<Objects*/
-
 zUtilsCore core;
 
-zObjMesh oMesh;
-zObjGraph oGraph;
-
+//declare the container of point cloud 
 zObjPointCloud oCloud;
+
+//declare the container of minimum and max bounds
 zPoint minBB, maxBB;
 
+//declare the attractor and force
 zPoint target(10, 10, 0);
 zVector force(0, 0, 0.5);
 
 
 ////// --- GUI OBJECTS ----------------------------------------------------
 
+//a custom function that creates point cloud from unit distance and number of XYZ
 void createPointCloud(zFnPointCloud& fnCloud, double unit_X, double unit_Y, double unit_Z, int n_X, int n_Y, int n_Z, zPoint& _minBB, zPoint& _maxBB, zPoint startPt = zPoint(0, 0, 0))
 {
 	vector<zVector>positions;
@@ -73,7 +74,7 @@ void createPointCloud(zFnPointCloud& fnCloud, double unit_X, double unit_Y, doub
 void setup()
 {
 	////////////////////////////////////////////////////////////////////////// Enable smooth display
-	
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_POINT_SMOOTH);
@@ -81,23 +82,20 @@ void setup()
 	////////////////////////////////////////////////////////////////////////// ZSPACE
 	// initialise model
 	model = zModel(100000);
-	model.addObject(oCloud);
-	oCloud.setDisplayElements(false);
 
 
 
-		
 	//////////////////////////////////////////////////////////  DISPLAY SETUP
 	// append to model for displaying the object
-	//model.addObject(oMesh);
+	model.addObject(oCloud);
 
 	// set display element booleans
-	//oMesh.setDisplayElements(true, true, true);
+	oCloud.setDisplayElements(false);
 
 	////////////////////////////////////////////////////////////////////////// Sliders
 
 	S = *new SliderGroup();
-	
+
 	S.addSlider(&background, "background");
 	S.sliders[0].attachToVariable(&background, 0, 1);
 	S.addSlider(&voxelSize, "size");
@@ -130,7 +128,6 @@ void update(int value)
 		numX = numY = numZ = 20;
 
 		createPointCloud(fnCloud, unitX, unitY, unitZ, numX, numY, numZ, minBB, maxBB);
-		//cout << maxBB << "," << minBB << endl;
 
 		numVoxels = fnCloud.numVertices();
 		zDomainColor colDomain(zColor(0, 0, 0, 0), zColor(1, 0, 0, 1));
@@ -140,7 +137,7 @@ void update(int value)
 		{
 			zVector vec = v.getPosition() - target;
 			float dist = vec.length();
-			zColor col = core.blendColor(dist, zDomainFloat(0,maxDist), colDomain, zRGB);
+			zColor col = core.blendColor(dist, zDomainFloat(0, maxDist), colDomain, zRGB);
 			v.setColor(col);
 		}
 
@@ -152,7 +149,7 @@ void update(int value)
 		if (target.z + force.z > 20 || target.z + force.z < 0)
 			force.z = -force.z;
 
-		//cout << force << endl;
+		cout << force << endl;
 		target += force;
 	}
 
@@ -185,13 +182,13 @@ void draw()
 	{
 		// zspace model draw
 		model.draw();
-		
+
 		model.displayUtils.drawPoint(target, zColor(0, 0, 1, 1), 10);
 
 		for (zItPointCloudVertex v(oCloud); !v.end(); v++)
 		{
 			//draw pt
-			model.displayUtils.drawPoint(v.getPosition(), v.getColor(), 10* voxelSize);
+			model.displayUtils.drawPoint(v.getPosition(), v.getColor(), 10 * voxelSize);
 
 			////draw cube
 			//zPoint min(v.getPosition().x - voxelSize, v.getPosition().y - voxelSize, v.getPosition().z - voxelSize);
@@ -199,10 +196,10 @@ void draw()
 			//model.displayUtils.drawCube(min,max, v.getColor());
 
 		}
-		
+
 	}
 
-	
+
 
 
 	//////////////////////////////////////////////////////////
@@ -234,11 +231,11 @@ void keyPress(unsigned char k, int xm, int ym)
 
 void mousePress(int b, int s, int x, int y)
 {
-	
+
 }
 
 void mouseMotion(int x, int y)
-{	
+{
 
 }
 
