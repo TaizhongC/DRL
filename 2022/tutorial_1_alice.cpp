@@ -44,7 +44,7 @@ zVector force(0, 0, 0.5);
 ////// --- GUI OBJECTS ----------------------------------------------------
 
 //a custom function that creates point cloud from unit distance and number of XYZ
-void createPointCloud(zFnPointCloud& fnCloud, double unit_X, double unit_Y, double unit_Z, int n_X, int n_Y, int n_Z, zPoint& _minBB, zPoint& _maxBB, zPoint startPt = zPoint(0, 0, 0))
+void createPointCloud(zObjPointCloud& oCloud, double unit_X, double unit_Y, double unit_Z, int n_X, int n_Y, int n_Z, zPoint& _minBB, zPoint& _maxBB, int& _numV, zPoint startPt = zPoint(0, 0, 0))
 {
 	vector<zVector>positions;
 
@@ -66,8 +66,11 @@ void createPointCloud(zFnPointCloud& fnCloud, double unit_X, double unit_Y, doub
 			}
 		}
 	}
+
+	zFnPointCloud fnCloud(oCloud);
 	fnCloud.create(positions);
 	fnCloud.getBounds(_minBB, _maxBB);
+	_numV = fnCloud.numVertices();
 }
 
 
@@ -120,16 +123,14 @@ void update(int value)
 {
 	if (compute)
 	{
-		zFnPointCloud fnCloud(oCloud);
 		float unitX, unitY, unitZ;
 		int numX, numY, numZ;
 
 		unitX = unitY = unitZ = 1;
 		numX = numY = numZ = 20;
 
-		createPointCloud(fnCloud, unitX, unitY, unitZ, numX, numY, numZ, minBB, maxBB);
+		createPointCloud(oCloud, unitX, unitY, unitZ, numX, numY, numZ, minBB, maxBB, numVoxels);
 
-		numVoxels = fnCloud.numVertices();
 		zDomainColor colDomain(zColor(0, 0, 0, 0), zColor(1, 0, 0, 1));
 
 		float maxDist = (maxBB - minBB).length();
@@ -156,7 +157,7 @@ void update(int value)
 	if (exportToCSV)
 	{
 		ofstream file;
-		file.open("data/points.csv", ofstream::out | ofstream::trunc);
+		file.open("data/points.csv");
 
 		for (zItPointCloudVertex v(oCloud); !v.end(); v++)
 		{
