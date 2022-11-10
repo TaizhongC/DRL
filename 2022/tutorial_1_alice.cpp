@@ -156,9 +156,8 @@ void update(int value)
 	if (exportToCSV)
 	{
 		ofstream file;
-		file.open("data/points.csv");
+		file.open("data/points.csv", ofstream::out | ofstream::trunc);
 
-		float maxDist = (maxBB - minBB).length();
 		for (zItPointCloudVertex v(oCloud); !v.end(); v++)
 		{
 			file << v.getId() << "," << v.getPosition().x << "," << v.getPosition().y << "," << v.getPosition().z << ",";
